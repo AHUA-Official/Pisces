@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古诗随机展示</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        .poem-container {
+            text-align: center;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+        }
+
+        .poem-content {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .poem-info {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .refresh-btn {
+            margin-top: 2rem;
+            padding: 0.5rem 1.5rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* 修改烟花样式 */
+        .firework {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 1.5s ease-out forwards;
+            box-shadow: 0 0 3px #fff,
+                       0 0 6px #fff,
+                       0 0 12px #f0f,
+                       0 0 16px #0ff;
+        }
+
+        @keyframes twinkle {
+            0% {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+            20% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(var(--ty)) translateX(var(--tx)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* 添加星星轨迹效果 */
+        .particle::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            animation: trail 1s ease-out forwards;
+        }
+
+        @keyframes trail {
+            0% {
+                box-shadow: 0 0 20px 2px rgba(255, 255, 255, 0.8);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poem-container">
+        <div class="poem-content" id="content">载入中...</div>
+        <div class="poem-info">
+            <span id="title"></span> · <span id="author"></span>
+        </div>
+        <button class="refresh-btn" onclick="loadPoem()">换一首</button>
+        <div style="margin-top: 1rem;">
+            <a href="/heart" style="color: #4CAF50; text-decoration: none;">查看跳动的心</a>
+            <span style="margin: 0 10px;">|</span>
+            <a href="/mytime" style="color: #4CAF50; text-decoration: none;">查看时钟</a>
+            <span style="margin: 0 10px;">|</span>
+            <a href="/dance" style="color: #4CAF50; text-decoration: none;">看看小猫</a>
+            <span style="margin: 0 10px;">|</span>
+            <a href="/snake" style="color: #4CAF50; text-decoration: none;">玩贪吃蛇</a>
+            <span style="margin: 0 10px;">|</span>
+            <a href="/dict" style="color: #4CAF50; text-decoration: none;">查字典</a>
+        </div>
+    </div>
+
+    <script>
+        function loadPoem() {
+            fetch('/api/poem')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const poem = data.data;
+                        document.getElementById('content').textContent = poem.content;
+                        document.getElementById('title').textContent = poem.title;
+                        document.getElementById('author').textContent = poem.author;
+                    } else {
+                        document.getElementById('content').textContent = '加载失败';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('content').textContent = '加载失败';
+                });
+        }
+
+        function createStarFirework(x, y) {
+            const firework = document.createElement('div');
+            firework.className = 'firework';
+            firework.style.left = x + 'px';
+            firework.style.top = y + 'px';
+
+            // 创建星星粒子
+            const colors = ['#ffffff', '#00ffff', '#ff00ff', '#ffff00', '#00ff00'];
+            const particleCount = 20;  // 减少粒子数量，使效果更像星星
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // 随机角度和距离，使用正弦函数创造更自然的扩散效果
+                const angle = (i / particleCount) * Math.PI * 2 + Math.random() * 0.5;
+                const distance = 30 + Math.random() * 60;
+                
+                // 计算粒子终点位置，添加一些随机性
+                const tx = Math.cos(angle) * distance * (0.8 + Math.random() * 0.4);
+                const ty = Math.sin(angle) * distance * (0.8 + Math.random() * 0.4);
+                
+                // 设置粒子样式
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                
+                firework.appendChild(particle);
+            }
+
+            document.body.appendChild(firework);
+
+            // 动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(firework);
+            }, 1500);
+        }
+
+        // 监听点击事件
+        document.addEventListener('click', (e) => {
+            createStarFirework(e.clientX, e.clientY);
+            // 添加连续的星星效果
+            setTimeout(() => createStarFirework(e.clientX + 20, e.clientY - 20), 100);
+            setTimeout(() => createStarFirework(e.clientX - 20, e.clientY + 20), 200);
+        });
+
+        // 自动在诗句周围生成星星
+        setInterval(() => {
+            const container = document.querySelector('.poem-container');
+            const rect = container.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 80 + Math.random() * 40;
+            const x = centerX + Math.cos(angle) * distance;
+            const y = centerY + Math.sin(angle) * distance;
+            
+            createStarFirework(x, y);
+        }, 2000);
+
+        // 页面加载时自动获取一首诗
+        window.onload = loadPoem;
+    </script>
+</body>
+</html> 

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉字字典</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        .dict-container {
+            width: 90%;
+            max-width: 800px;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #45a049;
+        }
+
+        .result-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+            min-height: 100px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+
+        .char-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .char-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .char {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .pinyin {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(76, 175, 80, 0.2);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-left: 10px;
+            border: 2px solid #666;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn">返回首页</a>
+    <div class="dict-container">
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="输入汉字..." id="searchInput">
+            <button class="search-btn" onclick="searchPinyin()">查询</button>
+        </div>
+        <div class="loading" id="loading">查询中...</div>
+        <div class="result-area" id="resultArea"></div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const resultArea = document.getElementById('resultArea');
+        const loading = document.getElementById('loading');
+
+        // 回车触发搜索
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchPinyin();
+            }
+        });
+
+        async function searchPinyin() {
+            const text = searchInput.value.trim();
+            if (!text) return;
+
+            loading.style.display = 'block';
+            resultArea.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/pinyin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    data.data.forEach(item => {
+                        const charDiv = document.createElement('div');
+                        charDiv.className = 'char-item';
+                        charDiv.innerHTML = `
+                            <div class="char">${item.char}</div>
+                            <div class="pinyin">${item.pinyin}</div>
+                        `;
+                        resultArea.appendChild(charDiv);
+                    });
+                } else {
+                    resultArea.innerHTML = `<div class="error">${data.message}</div>`;
+                }
+            } catch (error) {
+                resultArea.innerHTML = '<div class="error">查询失败，请稍后重试</div>';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 

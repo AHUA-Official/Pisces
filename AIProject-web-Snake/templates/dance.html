@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可爱猫咪</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            overflow: hidden;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: "Microsoft YaHei", sans-serif;
+            transition: background-color 0.3s;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .tips {
+            position: fixed;
+            bottom: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: "Microsoft YaHei", sans-serif;
+            text-align: center;
+            width: 100%;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn">返回首页</a>
+    <canvas id="canvas"></canvas>
+    <div class="tips">点击猫咪会眨眼哦 ~</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置画布大小
+        canvas.width = 400;
+        canvas.height = 400;
+
+        let eyesOpen = true;
+        let tailAngle = 0;
+        let earWiggle = 0;
+        
+        function drawCat() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 身体（椭圆）
+            ctx.beginPath();
+            ctx.ellipse(200, 220, 80, 60, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFB6C1';  // 粉色
+            ctx.fill();
+            
+            // 头部（圆形）
+            ctx.beginPath();
+            ctx.arc(200, 150, 50, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFB6C1';
+            ctx.fill();
+            
+            // 耳朵
+            ctx.beginPath();
+            ctx.moveTo(160 - earWiggle, 120);
+            ctx.lineTo(140 - earWiggle, 80);
+            ctx.lineTo(180 - earWiggle, 100);
+            ctx.fillStyle = '#FFB6C1';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(240 + earWiggle, 120);
+            ctx.lineTo(260 + earWiggle, 80);
+            ctx.lineTo(220 + earWiggle, 100);
+            ctx.fillStyle = '#FFB6C1';
+            ctx.fill();
+            
+            // 眼睛
+            if (eyesOpen) {
+                ctx.beginPath();
+                ctx.arc(180, 140, 8, 0, Math.PI * 2);
+                ctx.arc(220, 140, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#000';
+                ctx.fill();
+                
+                // 眼睛闪光
+                ctx.beginPath();
+                ctx.arc(183, 137, 3, 0, Math.PI * 2);
+                ctx.arc(223, 137, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(170, 140);
+                ctx.lineTo(190, 140);
+                ctx.moveTo(210, 140);
+                ctx.lineTo(230, 140);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // 鼻子
+            ctx.beginPath();
+            ctx.arc(200, 155, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#FF69B4';
+            ctx.fill();
+            
+            // 嘴
+            ctx.beginPath();
+            ctx.moveTo(200, 160);
+            ctx.lineTo(190, 170);
+            ctx.moveTo(200, 160);
+            ctx.lineTo(210, 170);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 胡须
+            ctx.beginPath();
+            ctx.moveTo(180, 160);
+            ctx.lineTo(140, 150);
+            ctx.moveTo(180, 165);
+            ctx.lineTo(140, 165);
+            ctx.moveTo(180, 170);
+            ctx.lineTo(140, 180);
+            
+            ctx.moveTo(220, 160);
+            ctx.lineTo(260, 150);
+            ctx.moveTo(220, 165);
+            ctx.lineTo(260, 165);
+            ctx.moveTo(220, 170);
+            ctx.lineTo(260, 180);
+            
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // 尾巴
+            ctx.beginPath();
+            ctx.moveTo(280, 220);
+            const tailX = 280 + Math.cos(tailAngle) * 30;
+            const tailY = 220 + Math.sin(tailAngle) * 30;
+            ctx.quadraticCurveTo(tailX, tailY, tailX + 20, tailY - 20);
+            ctx.strokeStyle = '#FFB6C1';
+            ctx.lineWidth = 10;
+            ctx.stroke();
+        }
+        
+        // 动画循环
+        function animate() {
+            tailAngle += 0.05;
+            earWiggle = Math.sin(tailAngle) * 5;
+            drawCat();
+            requestAnimationFrame(animate);
+        }
+        
+        // 点击事件
+        canvas.addEventListener('click', () => {
+            eyesOpen = false;
+            drawCat();
+            setTimeout(() => {
+                eyesOpen = true;
+                drawCat();
+            }, 200);
+        });
+        
+        // 开始动画
+        animate();
+    </script>
+</body>
+</html> 

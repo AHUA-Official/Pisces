@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字时钟</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1a1a1a;
+            font-family: "Microsoft YaHei", sans-serif;
+            overflow: hidden;
+        }
+
+        .clock-container {
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .time-display {
+            font-size: 4rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .time-unit {
+            display: inline-block;
+            min-width: 80px;
+            padding: 10px;
+            margin: 0 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-unit::after {
+            content: attr(data-label);
+            display: block;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            color: #888;
+        }
+
+        .time-unit.bounce {
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: "Microsoft YaHei", sans-serif;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 添加粒子效果 */
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(var(--tx));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn">返回首页</a>
+    <div class="clock-container">
+        <div class="time-display">
+            <span class="time-unit" data-label="年" id="year">00</span>
+            <span class="time-unit" data-label="月" id="month">00</span>
+            <span class="time-unit" data-label="日" id="day">00</span>
+            <span class="time-unit" data-label="时" id="hour">00</span>
+            <span class="time-unit" data-label="分" id="minute">00</span>
+            <span class="time-unit" data-label="秒" id="second">00</span>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const units = {
+                year: now.getFullYear().toString().slice(-2),
+                month: (now.getMonth() + 1).toString().padStart(2, '0'),
+                day: now.getDate().toString().padStart(2, '0'),
+                hour: now.getHours().toString().padStart(2, '0'),
+                minute: now.getMinutes().toString().padStart(2, '0'),
+                second: now.getSeconds().toString().padStart(2, '0')
+            };
+
+            for (const [unit, value] of Object.entries(units)) {
+                const element = document.getElementById(unit);
+                if (element.textContent !== value) {
+                    element.textContent = value;
+                    element.classList.remove('bounce');
+                    void element.offsetWidth; // 触发重排
+                    element.classList.add('bounce');
+                    createParticles(element);
+                }
+            }
+        }
+
+        function createParticles(element) {
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                particle.style.setProperty('--tx', (Math.random() * 100 - 50) + 'px');
+                particle.style.animation = 'float 1s ease-out forwards';
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    document.body.removeChild(particle);
+                }, 1000);
+            }
+        }
+
+        // 立即更新一次
+        updateClock();
+        // 每秒更新一次
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html> 
